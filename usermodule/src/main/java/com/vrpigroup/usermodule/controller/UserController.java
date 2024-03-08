@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -168,33 +169,79 @@ public class UserController {
         }
     }
 
+
     @PutMapping("/update-doc/{id}")
     public ResponseEntity<ResponseDto> updateUserDocuments(@PathVariable Long id,
-                                         @RequestParam(value = "profilePhoto", required = false) MultipartFile profilePhoto,
-                                         @RequestParam(value = "aadharFront", required = false) MultipartFile aadharFront,
-                                         @RequestParam(value = "aadharBack", required = false) MultipartFile aadharBack) {
-       Boolean isDocSave =  userModuleService.updateUserDocuments(id, profilePhoto, aadharFront, aadharBack);
-            if(isDocSave)
-                return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(UserConstants.HttpStatus_OK, UserConstants.USER_DOCUMENTS_UPDATED_SUCCESSFULLY));
-            else
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDto(UserConstants.INTERNAL_SERVER_ERROR_500, UserConstants.FAILED_TO_UPDATE_USER_DOCUMENTS));
-    }
+                                                           @RequestParam(value = "profilePhoto", required = false) MultipartFile profilePhoto,
+                                                           @RequestParam(value = "aadharFront", required = false) MultipartFile aadharFront,
+                                                           @RequestParam(value = "aadharBack", required = false) MultipartFile aadharBack) {
+        try {
+            // Validate file types
+            if (profilePhoto != null && !profilePhoto.isEmpty()) {
+                if (!isValidFileType(profilePhoto, "jpeg")) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ResponseDto(UserConstants.BAD_REQUEST_400, "Profile photo must be in JPEG format."));
+                }
+            }
 
-    @GetMapping("/get-doc-for-id/{id}")
-    public ResponseEntity<UserDocDto> getDocforId(@PathVariable Long id) {
-        UserDocDto userDocDto = userModuleService.getDocForId(id);
-        if (userDocDto != null) {
-//            HttpHeaders headers = new HttpHeaders();
-////            headers.setContentType(MediaType.IMAGE_JPEG);
-//            headers.setContentType(MediaType.ALL);
+            if (aadharFront != null && !aadharFront.isEmpty()) {
+                if (!isValidFileType(aadharFront, "pdf")) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ResponseDto(UserConstants.BAD_REQUEST_400, "Aadhar front must be in PDF format."));
+                }
+            }
 
-            return new ResponseEntity<>(userDocDto, HttpStatus.OK);
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            if (aadharBack != null && !aadharBack.isEmpty()) {
+                if (!isValidFileType(aadharBack, "pdf")) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ResponseDto(UserConstants.BAD_REQUEST_400, "Aadhar back must be in PDF format."));
+                }
+            }
+
+            // Call service method to update user documents
+            Boolean isDocSave =  userModuleService.updateUserDocuments(id, profilePhoto, aadharFront, aadharBack);
+
+            // Return response based on the result of the service call
+            if (isDocSave) {
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ResponseDto(UserConstants.HttpStatus_OK, UserConstants.USER_DOCUMENTS_UPDATED_SUCCESSFULLY));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseDto(UserConstants.INTERNAL_SERVER_ERROR_500, UserConstants.FAILED_TO_UPDATE_USER_DOCUMENTS));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDto(UserConstants.INTERNAL_SERVER_ERROR_500, "Error occurred while updating user documents."));
         }
     }
 
+    private boolean isValidFileType(MultipartFile file, String fileType) {
+        if (file == null || file.isEmpty()) {
+            // No file uploaded, so it's valid
+            return true;
+        }
 
+        String[] allowedExtensions = {"jpeg", "pdf"};
+        String fileExtension = getFileExtension(file);
+
+        return fileType.equalsIgnoreCase(fileExtension) && Arrays.asList(allowedExtensions).contains(fileExtension.toLowerCase());
+    }
+
+    private String getFileExtension(MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        return fileName != null ? fileName.substring(fileName.lastIndexOf(".") + 1) : null;
+    }
+    @GetMapping("/get-image/{field}/{id}")
+    public ResponseEntity<?> getImage(@PathVariable String field, @RequestParam Long id) {
+        byte[] image = userModuleService.getImage(id, field);
+        if (image != null) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.IMAGE_PNG);
+            return new ResponseEntity<>(image, headers, HttpStatus.OK);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
     @Operation(
             summary = "Delete User",
             description = "Delete user")

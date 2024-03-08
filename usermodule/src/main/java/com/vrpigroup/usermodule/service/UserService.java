@@ -205,13 +205,25 @@ public class UserService {
             UserEntity user = optionalUser.get();
             try {
                 if (profilePic != null && !profilePic.isEmpty()) {
-                    user.setProfilePic(profilePic.getBytes());
+                    if (isValidFileType(profilePic, "jpeg")) {
+                        user.setProfilePic(profilePic.getBytes());
+                    } else {
+                        throw new IllegalArgumentException("Profile photo must be in JPEG format.");
+                    }
                 }
                 if (aadharFront != null && !aadharFront.isEmpty()) {
-                    user.setAadharFront(aadharFront.getBytes());
+                    if (isValidFileType(aadharFront, "pdf")) {
+                        user.setAadharFront(aadharFront.getBytes());
+                    } else {
+                        throw new IllegalArgumentException("Aadhar front must be in PDF format.");
+                    }
                 }
                 if (aadharBack != null && !aadharBack.isEmpty()) {
-                    user.setAadharBack(aadharBack.getBytes());
+                    if (isValidFileType(aadharBack, "pdf")) {
+                        user.setAadharBack(aadharBack.getBytes());
+                    } else {
+                        throw new IllegalArgumentException("Aadhar back must be in PDF format.");
+                    }
                 }
                 userModuleRepository.save(user);
                 return true;
@@ -225,21 +237,59 @@ public class UserService {
         }
     }
 
-
-    public UserDocDto getDocForId(Long id) {
-        Optional<UserEntity> user = userModuleRepository.findById(id);
-        if (user.isPresent()) {
-            UserDocDto userDocDto = new UserDocDto();
-            byte[] aadharf=Base64.getEncoder().encode(user.get().getAadharFront());
-            userDocDto.setUserId(user.get().getId());
-            userDocDto.setAadharFront(aadharf);
-            userDocDto.setAadharBack(user.get().getAadharBack());
-            userDocDto.setProfilePic(user.get().getProfilePic());
-            return userDocDto;
-        } else {
-            logger.warn("Failed to get user documents. User not found for ID: {}", id);
-            return null;
+    private boolean isValidFileType(MultipartFile file, String fileType) {
+        if (file == null || file.isEmpty()) {
+            // No file uploaded, so it's valid
+            return true;
         }
 
+        String[] allowedExtensions = {"jpeg", "pdf"};
+        String fileExtension = getFileExtension(file);
+
+        return fileType.equalsIgnoreCase(fileExtension) && Arrays.asList(allowedExtensions).contains(fileExtension.toLowerCase());
     }
+
+    private String getFileExtension(MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        return fileName != null ? fileName.substring(fileName.lastIndexOf(".") + 1) : null;
+    }
+
+    public byte[] getImage(Long id, String field) {
+        Optional<UserEntity> userOptional = userModuleRepository.findById(id);
+        if (userOptional.isPresent()) {
+            UserEntity user = userOptional.get();
+
+            switch (field) {
+                case "profilePic":
+                    if (user.getProfilePic() != null) {
+                        return user.getProfilePic();
+                    } else {
+                        logger.warn("Profile photo is null for user with ID: {}", id);
+                        return null; // or return a default profile photo
+                    }
+                case "aadharFront":
+                    if (user.getAadharFront() != null) {
+                        return user.getAadharFront();
+                    } else {
+                        logger.warn("Aadhar Front photo is null for user with ID: {}", id);
+                        return null; // or return a default profile photo
+                    }
+                case "aadharBack":
+                    if (user.getAadharBack() != null) {
+                        return user.getAadharBack();
+                    } else {
+                        logger.warn("Aadhar Back photo is null for user with ID: {}", id);
+                        return null; // or return a default profile photo
+                    }
+                default:
+                    logger.error("Invalid field type: {}", field);
+                    return null; // or throw an exception
+            }
+        } else {
+            logger.warn("Failed to get user. User not found for ID: {}", id);
+            return null; // or throw an exception, depending on your use case
+        }
+    }
+
+
 }
