@@ -1,24 +1,24 @@
 package com.vrpigroup.usermodule.controller;
 
 import com.vrpigroup.usermodule.constants.UserConstants;
-import com.vrpigroup.usermodule.dto.ResponseDto;
-import com.vrpigroup.usermodule.dto.UpdateUserDto;
-import com.vrpigroup.usermodule.dto.UserDto;
+import com.vrpigroup.usermodule.dto.*;
 import com.vrpigroup.usermodule.entity.ContactUs;
 import com.vrpigroup.usermodule.entity.UserEntity;
-import com.vrpigroup.usermodule.dto.LoginDto;
 import com.vrpigroup.usermodule.exception.UserNotFoundException;
 import com.vrpigroup.usermodule.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -150,13 +150,11 @@ public class UserController {
     @RequestMapping(value = "/update-user/{id}", method = RequestMethod.PUT)
     public ResponseEntity<UpdateUserDto> updateUser(
             @PathVariable Long id,
-            @RequestParam("profilePhoto") MultipartFile profilePhoto,
             @RequestBody UpdateUserDto user
     ){
-
         try {
             log.info("UserController:updateUser - Updating user details and profile photo for user ID: {}", id);
-            var updatedUser = userModuleService.updateUserProfileAndDetails(id, profilePhoto, user);
+            var updatedUser = userModuleService.updateUserProfileAndDetails(id, user);
             if (updatedUser != null) {
                 log.info("UserController:updateUser - User details and profile photo updated successfully for user ID: {}", id);
                 return ResponseEntity.ok(updatedUser);
@@ -170,6 +168,31 @@ public class UserController {
         }
     }
 
+    @PutMapping("/update-doc/{id}")
+    public ResponseEntity<ResponseDto> updateUserDocuments(@PathVariable Long id,
+                                         @RequestParam(value = "profilePhoto", required = false) MultipartFile profilePhoto,
+                                         @RequestParam(value = "aadharFront", required = false) MultipartFile aadharFront,
+                                         @RequestParam(value = "aadharBack", required = false) MultipartFile aadharBack) {
+       Boolean isDocSave =  userModuleService.updateUserDocuments(id, profilePhoto, aadharFront, aadharBack);
+            if(isDocSave)
+                return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(UserConstants.HttpStatus_OK, UserConstants.USER_DOCUMENTS_UPDATED_SUCCESSFULLY));
+            else
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDto(UserConstants.INTERNAL_SERVER_ERROR_500, UserConstants.FAILED_TO_UPDATE_USER_DOCUMENTS));
+    }
+
+    @GetMapping("/get-doc-for-id/{id}")
+    public ResponseEntity<UserDocDto> getDocforId(@PathVariable Long id) {
+        UserDocDto userDocDto = userModuleService.getDocForId(id);
+        if (userDocDto != null) {
+//            HttpHeaders headers = new HttpHeaders();
+////            headers.setContentType(MediaType.IMAGE_JPEG);
+//            headers.setContentType(MediaType.ALL);
+
+            return new ResponseEntity<>(userDocDto, HttpStatus.OK);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 
     @Operation(

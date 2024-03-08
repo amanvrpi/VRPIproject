@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -24,7 +25,6 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     @Column(name = "User_ID")
     private Long id;
 
@@ -49,7 +49,7 @@ public class UserEntity {
     private LocalDate dateOfBirth;
 
     @Schema(name = "phoneNumber", description = "Phone Number", example = "1234567890", required = true)
-    @Phone
+//    @Phone
     private String phoneNumber;
 
     @Schema(name = "address", description = "Address", example = "Bihar", required = true)
@@ -58,7 +58,7 @@ public class UserEntity {
 
 
     @Schema(name = "email", description = "Email Id", example = " ")
-    @ValidEmail
+//    @ValidEmail
     private String email;
 
     @Schema(name = "Create Password", description = "Password", example = "ABc@3214", required = true)
@@ -69,19 +69,22 @@ public class UserEntity {
     private String occupation;
 
     @Schema(name = "aadharCardNumber", description = "Aadhar Card Number", example = "123456789012")
-    @Pattern(regexp = "\\d{12}", message = "Invalid Aadhar card format")
+//    @Pattern(regexp = "\\d{12}", message = "Invalid Aadhar card format")
     private String aadharCardNumber;
 
 
     @Schema(name = "aadharFront", description = "Aadhar Front", example = "aadhar_front.jpg")
     @Lob
+    @Column(length = 5000000)
     private byte[] aadharFront;
 
     @Schema(name = "aadharBack", description = "Aadhar Back", example = "aadhar_back.jpg")
     @Lob
+    @Column(length = 5000000)
     private byte[] aadharBack;
 
-
+    @Lob
+    @Column(length = 5000000)
     @Schema(name = "profilePic", description = "Profile Picture", example = "profile.jpg")
     private byte[] profilePic;
 

@@ -2,6 +2,7 @@ package com.vrpigroup.usermodule.service;
 import com.vrpigroup.usermodule.annotations.email.EmailValidation;
 import com.vrpigroup.usermodule.annotations.email.EmailValidationServiceImpl;
 import com.vrpigroup.usermodule.dto.UpdateUserDto;
+import com.vrpigroup.usermodule.dto.UserDocDto;
 import com.vrpigroup.usermodule.dto.UserDto;
 import com.vrpigroup.usermodule.entity.ContactUs;
 import com.vrpigroup.usermodule.entity.UserEntity;
@@ -169,7 +170,7 @@ public class UserService {
         }
     }
 
-    public UpdateUserDto updateUserProfileAndDetails(Long id, MultipartFile profilePhoto, UpdateUserDto updatedUser) {
+    public UpdateUserDto updateUserProfileAndDetails(Long id, UpdateUserDto updatedUser) {
         Optional<UserEntity> optionalUser = userModuleRepository.findById(id);
         UserMapper userMapper = new UserMapper(passwordEncoder);
         if (optionalUser.isPresent()) {
@@ -186,14 +187,10 @@ public class UserService {
             user.setOccupation(updatedUser.getOccupation());
             user.setAadharCardNumber(updatedUser.getAadharCardNumber());
             try {
-                if (profilePhoto != null && !profilePhoto.isEmpty()) {
-                    user.setProfilePic(profilePhoto.getBytes());
-                }
                UserEntity e= userModuleRepository.save(user);
                 return userMapper.updateUserProfileAndDetails(e, updatedUser);
-
-            } catch (IOException e) {
-                logger.error("Error while updating user profile photo", e);
+            } catch (Exception e) {
+                logger.error("Error while updating user ", e);
             }
         } else {
             logger.warn("Failed to update user profile and details. User not found for ID: {}", id);
@@ -201,4 +198,48 @@ public class UserService {
         return null;
     }
 
+    public Boolean updateUserDocuments(Long id, MultipartFile aadharFront, MultipartFile aadharBack, MultipartFile profilePic) {
+        Optional<UserEntity> optionalUser = userModuleRepository.findById(id);
+
+        if (optionalUser.isPresent()) {
+            UserEntity user = optionalUser.get();
+            try {
+                if (profilePic != null && !profilePic.isEmpty()) {
+                    user.setProfilePic(profilePic.getBytes());
+                }
+                if (aadharFront != null && !aadharFront.isEmpty()) {
+                    user.setAadharFront(aadharFront.getBytes());
+                }
+                if (aadharBack != null && !aadharBack.isEmpty()) {
+                    user.setAadharBack(aadharBack.getBytes());
+                }
+                userModuleRepository.save(user);
+                return true;
+            } catch (Exception e) {
+                logger.error("Error while updating user documents", e);
+                return false;
+            }
+        } else {
+            logger.warn("Failed to update user documents. User not found for ID: {}", id);
+            return false;
+        }
+    }
+
+
+    public UserDocDto getDocForId(Long id) {
+        Optional<UserEntity> user = userModuleRepository.findById(id);
+        if (user.isPresent()) {
+            UserDocDto userDocDto = new UserDocDto();
+            byte[] aadharf=Base64.getEncoder().encode(user.get().getAadharFront());
+            userDocDto.setUserId(user.get().getId());
+            userDocDto.setAadharFront(aadharf);
+            userDocDto.setAadharBack(user.get().getAadharBack());
+            userDocDto.setProfilePic(user.get().getProfilePic());
+            return userDocDto;
+        } else {
+            logger.warn("Failed to get user documents. User not found for ID: {}", id);
+            return null;
+        }
+
+    }
 }

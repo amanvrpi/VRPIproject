@@ -17,60 +17,47 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class UpdateUserDto {
 
-    @Schema(name = "First Name", description = "Full Name", example = "Aman Raj", required = true)
+    @Schema(name = "First Name", description = "Full Name", example = "Aman Raj")
     @Size(min = 3, max = 50, message = "Full Name must be between 3 and 50 characters")
     private String firstName;
 
-    @Schema(name = "Last Name", description = "Full Name", example = "Aman Raj", required = true)
+    @Schema(name = "Last Name", description = "Full Name", example = "Aman Raj")
     private String lastName;
 
-
-    @Schema(name = "fathersName", description = "Father's Name", example = "Raj Kumar", required = true)
+    @Schema(name = "fathersName", description = "Father's Name", example = "Raj Kumar")
     @Size(min = 3, max = 50, message = "Father's name must be between 3 and 50 characters")
     private String fathersName;
 
-    @Schema(name = "Gender", description = "Gemder", example = "Male", required = true)
+    @Schema(name = "Gender", description = "Gemder", example = "Male")
     private String gender;
 
-    @Schema(name = "dateOfBirth", description = "Date of Birth", example = "1999-12-12", required = true)
+    @Schema(name = "dateOfBirth", description = "Date of Birth", example = "1999-12-12")
     @Past
     @Column(name = "DOB", nullable = false)
     private LocalDate dateOfBirth;
 
-    @Schema(name = "phoneNumber", description = "Phone Number", example = "1234567890", required = true)
+    @Schema(name = "phoneNumber", description = "Phone Number", example = "1234567890")
     @Phone
     private String phoneNumber;
 
-    @Schema(name = "address", description = "Address", example = "Bihar", required = true)
+    @Schema(name = "address", description = "Address", example = "Bihar")
     @Size(max = 255, message = "Address can't exceed 255 characters")
     private String address;
-
 
     @Schema(name = "email", description = "Email Id", example = " ")
     @ValidEmail
     private String email;
 
-    @Schema(name = "Create Password", description = "Password", example = "ABc@3214", required = true)
+    @Schema(name = "Create Password", description = "Password", example = "ABc@3214")
     @Password
     private String createPassword;
 
 
-    @Schema(name = "occupation", description = "Occupation", example = "Student", required = true)
+    @Schema(name = "occupation", description = "Occupation", example = "Student")
     private String occupation;
 
     @Schema(name = "aadharCardNumber", description = "Aadhar Card Number", example = "123456789012")
     @Pattern(regexp = "\\d{12}", message = "Invalid Aadhar card format")
     private String aadharCardNumber;
 
-
-    @Schema(name = "aadharFront", description = "Aadhar Front", example = "aadhar_front.jpg")
-    @Lob
-    private byte[] aadhar_front;
-
-    @Schema(name = "aadharBack", description = "Aadhar Back", example = "aadhar_back.jpg")
-    @Lob
-    private byte[] aadhar_back;
-
-    @Schema(name = "profilePic", description = "Profile Picture", example = "profile.jpg")
-    private String profilePic;
 }
