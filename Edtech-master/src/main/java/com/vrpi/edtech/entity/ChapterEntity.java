@@ -1,6 +1,8 @@
 package com.vrpi.edtech.entity;
+
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.util.List;
 
 @Entity
@@ -16,5 +18,7 @@ public record ChapterEntity(
 
         @OneToMany
         List<ModuleEntity> modules
+
+
 ) {
 }

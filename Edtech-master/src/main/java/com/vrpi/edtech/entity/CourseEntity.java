@@ -48,4 +48,8 @@ public class CourseEntity {
         @ManyToOne
         @JoinColumn(name = "instructor_id")
         private InstructorEntity instructor;
+
+        @ManyToOne
+        @JoinColumn(name = "admin_id")
+        AdminEntity admin;
 }
