@@ -73,7 +73,7 @@ public class UserController {
                                                   @RequestParam(value = "aadharBack", required = false) MultipartFile aadharBack
     ) {
         log.info("UserController:createUser - Creating user account for email: {}", userModule.getEmail());
-        var createdUser = userModuleService.createUser(userModule,profilePhoto, aadharFront, aadharBack);
+        var createdUser = userModuleService.createUser(userModule, profilePhoto, aadharFront, aadharBack);
         if (createdUser != null) {
             log.info("UserController:createUser - User account created successfully for email: {}", userModule.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDto(UserConstants.CREATED_201, UserConstants.CREATED_MESSAGE));
@@ -152,7 +152,7 @@ public class UserController {
     public ResponseEntity<UpdateUserDto> updateUser(
             @PathVariable Long id,
             @RequestBody UpdateUserDto user
-    ){
+    ) {
         try {
             log.info("UserController:updateUser - Updating user details and profile photo for user ID: {}", id);
             var updatedUser = userModuleService.updateUserProfileAndDetails(id, user);
@@ -199,7 +199,7 @@ public class UserController {
             }
 
             // Call service method to update user documents
-            Boolean isDocSave =  userModuleService.updateUserDocuments(id, profilePhoto, aadharFront, aadharBack);
+            Boolean isDocSave = userModuleService.updateUserDocuments(id, profilePhoto, aadharFront, aadharBack);
 
             // Return response based on the result of the service call
             if (isDocSave) {
@@ -231,6 +231,7 @@ public class UserController {
         String fileName = file.getOriginalFilename();
         return fileName != null ? fileName.substring(fileName.lastIndexOf(".") + 1) : null;
     }
+
     @GetMapping("/get-image/{field}/{id}")
     public ResponseEntity<?> getImage(@PathVariable String field, @RequestParam Long id) {
         byte[] image = userModuleService.getImage(id, field);
@@ -242,6 +243,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(
             summary = "Delete User",
             description = "Delete user")
@@ -280,6 +282,16 @@ public class UserController {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseDto(UserConstants.INTERNAL_SERVER_ERROR_500, UserConstants.FAILED_TO_SEND_MESSAGE));
+        }
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<List<UserEntity>> handleSearch(@RequestBody SearchReques request) {
+        try {
+            List<UserEntity> users = userModuleService.search(request);
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 

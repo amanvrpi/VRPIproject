@@ -95,4 +95,8 @@ public class UserEntity {
     public boolean active;
 
     private String otp;
+
+    @ElementCollection
+    private List<Long> courseIds = new ArrayList<>();
+
 }

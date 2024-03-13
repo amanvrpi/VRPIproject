@@ -1,12 +1,9 @@
 package com.vrpigroup.usermodule.service;
 import com.vrpigroup.usermodule.annotations.email.EmailValidation;
 import com.vrpigroup.usermodule.annotations.email.EmailValidationServiceImpl;
-import com.vrpigroup.usermodule.dto.UpdateUserDto;
-import com.vrpigroup.usermodule.dto.UserDocDto;
-import com.vrpigroup.usermodule.dto.UserDto;
+import com.vrpigroup.usermodule.dto.*;
 import com.vrpigroup.usermodule.entity.ContactUs;
 import com.vrpigroup.usermodule.entity.UserEntity;
-import com.vrpigroup.usermodule.dto.LoginDto;
 import com.vrpigroup.usermodule.exception.UserAlreadyExistException;
 import com.vrpigroup.usermodule.mapper.UserMapper;
 import com.vrpigroup.usermodule.repo.ContactUsRepo;
@@ -18,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 //import org.springframework.context.annotation.Lazy;
 //import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Example;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -290,6 +288,51 @@ public class UserService {
             return null; // or throw an exception, depending on your use case
         }
     }
+public   List<UserEntity> search(SearchReques request){
+    UserEntity entity=new UserEntity();
+    // Set search criteria only if at least one field is not null or empty
+    if (request != null &&
+            (Objects.nonNull(request.getId()) ||
+                    Objects.nonNull(request.getFirstName()) ||
+                    Objects.nonNull(request.getLastName()) ||
+                    Objects.nonNull(request.getGender()) ||
+                    Objects.nonNull(request.getPhoneNumber()) ||
+                    Objects.nonNull(request.getEmail()) ||
+                    Objects.nonNull(request.getOccupation()) ||
+                    Objects.nonNull(request.getAadharCardNumber()) ||
+                    request.isActive())) {
 
+        if (Objects.nonNull(request.getId())) {
+            entity.setId(request.getId());
+        }
+        if (Objects.nonNull(request.getFirstName())) {
+            entity.setFirstName(request.getFirstName());
+        }
+        if (Objects.nonNull(request.getLastName())) {
+            entity.setLastName(request.getLastName());
+        }
+        if (Objects.nonNull(request.getGender())) {
+            entity.setGender(request.getGender());
+        }
+        if (Objects.nonNull(request.getPhoneNumber())) {
+            entity.setPhoneNumber(request.getPhoneNumber());
+        }
+        if (Objects.nonNull(request.getEmail())) {
+            entity.setEmail(request.getEmail());
+        }
+        if (Objects.nonNull(request.getOccupation())) {
+            entity.setOccupation(request.getOccupation());
+        }
+        if (Objects.nonNull(request.getAadharCardNumber())) {
+            entity.setAadharCardNumber(request.getAadharCardNumber());
+        }
+        entity.setActive(request.isActive());
+
+        return userModuleRepository.findAll(Example.of(entity));
+    } else {
+        // If all fields are null or empty, return an empty list
+        return List.of();
+    }
+}
 
 }
