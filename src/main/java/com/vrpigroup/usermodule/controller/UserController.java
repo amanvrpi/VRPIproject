@@ -121,7 +121,7 @@ public ResponseEntity<ResponseDto> loginUser(@RequestBody LoginDto loginDto) {
             if (user.isActive()) {
                 if (validateUserForLogin(user, loginDto)) {
                     log.info("UserController:loginUser - Login successful for user: {}", user.getEmail());
-                    return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(user.getId(), UserConstants.HttpStatus_OK, UserConstants.LOGIN_SUCCESSFUL));
+                    return ResponseEntity.ok(new ResponseDto(user.getId(), UserConstants.HttpStatus_OK, UserConstants.LOGIN_SUCCESSFUL));
                 } else {
                     log.warn("UserController:loginUser - Invalid credentials for user: {}", user.getEmail());
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto(null, UserConstants.UNAUTHORIZED_401, UserConstants.INVALID_CREDENTIALS));
