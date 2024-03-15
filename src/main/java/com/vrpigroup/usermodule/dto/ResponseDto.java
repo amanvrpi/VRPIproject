@@ -6,11 +6,11 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Schema(name = "ResponseDto", description = "Data Transfer Object for Response")
 public class ResponseDto {
-    
     @Schema(name = "userId", description = "User ID", example = "123456789", required = true)
-    private String userId;
+    private Long userId;
 
     @Schema(name = "statusCode", description = "Status Code", example = "200", required = true)
     private String statusCode;
