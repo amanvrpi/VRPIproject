@@ -110,35 +110,35 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Login User",
-            description = "Login user")
-    @PostMapping("/login")
-    public ResponseEntity<ResponseDto> loginUser(@RequestBody LoginDto loginDto) {
-        try {
-            log.info("UserController:loginUser - Attempting login for user: {}", loginDto.getEmail());
-            var user = userModuleService.loginUser(loginDto);
-            if (user != null) {
-                if (user.isActive()) {
-                    if (validateUserForLogin(user, loginDto)) {
-                        log.info("UserController:loginUser - Login successful for user: {}", user.getEmail());
-                        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(user.getId(),UserConstants.HttpStatus_OK, UserConstants.LOGIN_SUCCESSFUL));
-                    } else {
-                        log.warn("UserController:loginUser - Invalid credentials for user: {}", user.getEmail());
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto(UserConstants.UNAUTHORIZED_401, UserConstants.INVALID_CREDENTIALS));
-                    }
+    summary = "Login User",
+    description = "Login user")
+@PostMapping("/login")
+public ResponseEntity<ResponseDto> loginUser(@RequestBody LoginDto loginDto) {
+    try {
+        log.info("UserController:loginUser - Attempting login for user: {}", loginDto.getEmail());
+        UserEntity user = userModuleService.loginUser(loginDto);
+        if (user != null) {
+            if (user.isActive()) {
+                if (validateUserForLogin(user, loginDto)) {
+                    log.info("UserController:loginUser - Login successful for user: {}", user.getEmail());
+                    return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(user.getId(), UserConstants.HttpStatus_OK, UserConstants.LOGIN_SUCCESSFUL));
                 } else {
-                    log.warn("UserController:loginUser - Account not verified for user: {}", user.getEmail());
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto(UserConstants.UNAUTHORIZED_401, UserConstants.FAILED_TO_VERIFY_ACCOUNT));
+                    log.warn("UserController:loginUser - Invalid credentials for user: {}", user.getEmail());
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto(null, UserConstants.UNAUTHORIZED_401, UserConstants.INVALID_CREDENTIALS));
                 }
             } else {
-                log.warn("UserController:loginUser - Invalid credentials for user");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto(UserConstants.UNAUTHORIZED_401, UserConstants.INVALID_CREDENTIALS));
+                log.warn("UserController:loginUser - Account not verified for user: {}", user.getEmail());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto(null, UserConstants.UNAUTHORIZED_401, UserConstants.FAILED_TO_VERIFY_ACCOUNT));
             }
-        } catch (Exception e) {
-            log.error("UserController:loginUser - Error during login for user: {}", loginDto.getEmail(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDto(UserConstants.INTERNAL_SERVER_ERROR_500, UserConstants.FAILED_TO_PROCEED_LOGIN));
+        } else {
+            log.warn("UserController:loginUser - Invalid credentials for user");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto(null, UserConstants.UNAUTHORIZED_401, UserConstants.INVALID_CREDENTIALS));
         }
+    } catch (Exception e) {
+        log.error("UserController:loginUser - Error during login for user: {}", loginDto.getEmail(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDto(null, UserConstants.INTERNAL_SERVER_ERROR_500, UserConstants.FAILED_TO_PROCEED_LOGIN));
     }
+}
 
     private boolean validateUserForLogin(UserEntity user, LoginDto loginDto) {
         return (user.getEmail().equals(loginDto.getEmail())
